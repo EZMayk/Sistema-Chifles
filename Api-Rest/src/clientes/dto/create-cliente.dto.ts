@@ -9,10 +9,15 @@ export class CreateClienteDto {
   @IsString()
   apellido: string;
 
-  @IsEmail()
-  correo: string;
+  @IsNotEmpty()
+  @IsString()
+  dni: string;
 
   @IsNotEmpty()
   @IsString()
   telefono: string;
+
+  @IsEmail()
+  email: string;
+
 }

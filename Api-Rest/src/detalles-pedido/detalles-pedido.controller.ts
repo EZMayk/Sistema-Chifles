@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe } from '@nestjs/common';
 import { DetallesPedidoService } from './detalles-pedido.service';
-import { CreateDetallePedidoDto } from './dto/create-detalles-pedido.dto';
+import { CreateDetalleDto } from './dto/create-detalles-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalles-pedido.dto';
 import { DetallePedido } from './entities/detalles-pedido.entity';
 
@@ -24,8 +24,8 @@ export class DetallesPedidoController {
   }
 
   @Post()
-  create(@Body() createDetallePedidoDto: CreateDetallePedidoDto): Promise<DetallePedido> {
-    return this.detallesPedidoService.create(createDetallePedidoDto);
+  create(@Body() createDetalleDto: CreateDetalleDto): Promise<DetallePedido> {
+    return this.detallesPedidoService.create(createDetalleDto);
   }
 
   @Put(':id')

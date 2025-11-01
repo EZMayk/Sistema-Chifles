@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DetallePedido } from './entities/detalles-pedido.entity';
-import { CreateDetallePedidoDto } from './dto/create-detalles-pedido.dto';
+import { CreateDetalleDto } from './dto/create-detalles-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalles-pedido.dto';
 
 @Injectable()
@@ -29,9 +29,10 @@ export class DetallesPedidoService {
     return detalle;
   }
 
-  async create(createDetallePedidoDto: CreateDetallePedidoDto): Promise<DetallePedido> {
-    const detalle = this.detallePedidoRepository.create(createDetallePedidoDto);
-    return await this.detallePedidoRepository.save(detalle);
+  async create(createDetalleDto: CreateDetalleDto): Promise<DetallePedido> {
+    const detalle = this.detallePedidoRepository.create(createDetalleDto as any);
+    const saved = await this.detallePedidoRepository.save(detalle);
+    return saved as unknown as DetallePedido;
   }
 
   async update(id: number, updateDetallePedidoDto: UpdateDetallePedidoDto): Promise<DetallePedido> {

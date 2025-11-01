@@ -1,0 +1,165 @@
+{
+  "info": {
+    "name": "Chifles Full Flow",
+    "_postman_id": "chifles-full-flow",
+    "description": "Colección para probar el flujo completo: cliente -> producto -> insumo -> producto-insumo -> pedido (con detalles) -> factura -> orden de producción (con detalle automático).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/chifles" }
+  ],
+  "item": [
+    {
+      "name": "01 - Crear cliente",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/clientes", "host": ["{{baseUrl}}"], "path": ["clientes"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"María\",\n  \"apellido\": \"González\",\n  \"dni\": \"7845123089\",\n  \"telefono\": \"987654321\",\n  \"email\": \"maria.gonzales@gmail.com\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var json = pm.response.json();",
+              "if (json && json.id) { pm.environment.set('clienteId', json.id); }",
+              "pm.test('Cliente creado', function() { pm.expect(pm.response.code).to.eql(201); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Crear producto",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/productos", "host": ["{{baseUrl}}"], "path": ["productos"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Chifles Tradicional\",\n  \"descripcion\": \"Chifles fritos salados - bolsa 200g\",\n  \"precio\": 3.5,\n  \"categoria\": \"snack\",\n  \"unidad_medida\": \"bolsa\",\n  \"estado\": \"activo\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var json = pm.response.json();",
+              "if (json && json.id) { pm.environment.set('productoId', json.id); }",
+              "pm.test('Producto creado', function() { pm.expect(pm.response.code).to.eql(201); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Crear insumo",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/insumos", "host": ["{{baseUrl}}"], "path": ["insumos"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Plátano verde\",\n  \"descripcion\": \"Plátano para fritura - kg\",\n  \"unidad_medida\": \"kg\",\n  \"stock\": 100,\n  \"estado\": \"disponible\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "exec": [ "var json = pm.response.json(); if (json && json.id) { pm.environment.set('insumoId', json.id); } pm.test('Insumo creado', function() { pm.expect(pm.response.code).to.eql(201); });" ] }
+        }
+      ]
+    },
+    {
+      "name": "04 - Crear producto-insumo (receta)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/productos-insumos", "host": ["{{baseUrl}}"], "path": ["productos-insumos"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": {{productoId}},\n  \"insumoId\": {{insumoId}},\n  \"cantidad_necesaria\": 0.5\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "exec": [ "var json = pm.response.json(); if (json && json.id) { pm.environment.set('productoInsumoId', json.id); } pm.test('Producto-Insumo creado', function() { pm.expect(pm.response.code).to.eql(201); });" ] }
+        }
+      ]
+    },
+    {
+      "name": "05 - Crear orden de producción",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/ordenes-produccion", "host": ["{{baseUrl}}"], "path": ["ordenes-produccion"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecha_inicio\": \"2025-11-11T08:00:00Z\",\n  \"fecha_fin\": \"2025-11-11T12:00:00Z\",\n  \"estado\": \"planificada\",\n  \"productoId\": {{productoId}},\n  \"cantidad_producir\": 10\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "exec": [ "var json = pm.response.json(); if (json && json.id) { pm.environment.set('ordenId', json.id); } pm.test('Orden creada', function() { pm.expect(pm.response.code).to.eql(201); });" ] }
+        }
+      ]
+    },
+    {
+      "name": "06 - Crear pedido con detalle",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/pedidos", "host": ["{{baseUrl}}"], "path": ["pedidos"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecha\": \"2025-11-11T10:00:00Z\",\n  \"total\": 7.0,\n  \"estado\": \"pendiente\",\n  \"clienteId\": {{clienteId}},\n  \"detalles\": [\n    {\n      \"productoId\": {{productoId}},\n      \"cantidad_solicitada\": 2,\n      \"precio_unitario\": 3.5,\n      \"subtotal\": 7.0\n    }\n  ]\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "exec": [ "var json = pm.response.json(); if (json && json.id) { pm.environment.set('pedidoId', json.id); } pm.test('Pedido creado', function() { pm.expect(pm.response.code).to.eql(201); });" ] }
+        }
+      ]
+    },
+    {
+      "name": "07 - Crear factura asociada al pedido",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/facturas", "host": ["{{baseUrl}}"], "path": ["facturas"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecha_emision\": \"2025-11-10T11:00:00Z\",\n  \"total\": 901.0,\n  \"estado_pago\": \"pendiente\",\n  \"clienteId\": {{clienteId}},\n  \"pedidoId\": {{pedidoId}}\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": { "exec": [ "var json = pm.response.json(); if (json && json.id) { pm.environment.set('facturaId', json.id); } pm.test('Factura creada', function() { pm.expect(pm.response.code).to.eql(201); });" ] }
+        }
+      ]
+    },
+    {
+      "name": "08 - GET detalles de pedido",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/detalles-pedido/pedido/{{pedidoId}}", "host": ["{{baseUrl}}"], "path": ["detalles-pedido","pedido","{{pedidoId}}"] }
+      }
+    },
+    {
+      "name": "09 - GET detalles de orden de producción",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{baseUrl}}/detalles-orden-produccion/orden/{{ordenId}}", "host": ["{{baseUrl}}"], "path": ["detalles-orden-produccion","orden","{{ordenId}}"] }
+      }
+    }
+  ]
+}
