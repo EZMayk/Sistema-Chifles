@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  api-rest-sistema:
+    build: .
+    container_name: api-rest-sistema
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./.env
+    depends_on:
+      - api-postgres-sistema-chifles
+    volumes:
+      - ./:/app
+    working_dir: /app
+
+  api-postgres-sistema-chifles:
+    image: postgres:16-alpine
+    container_name: api-postgres-sistema-chifles
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: sistema-chifles
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
