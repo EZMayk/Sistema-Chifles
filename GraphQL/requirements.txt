@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+strawberry-graphql[fastapi]
+httpx[http2]
+python-dotenv
+pydantic
+aiocache
