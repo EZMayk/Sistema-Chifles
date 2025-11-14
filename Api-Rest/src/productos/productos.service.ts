@@ -44,4 +44,16 @@ export class ProductosService {
       throw new NotFoundException(`Producto con ID ${id} no encontrado`);
     }
   }
+
+  async toggleStatus(id: number): Promise<Producto> {
+    const producto = await this.productoRepository.findOneBy({ id });
+    if (!producto) {
+      throw new Error(`Producto con ID ${id} no encontrado`);
+    }
+  
+    // Cambiar estado
+    producto.estado = producto.estado === 'activo' ? 'inactivo' : 'activo';
+    await this.productoRepository.save(producto);
+    return producto;
+  }
 }

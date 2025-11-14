@@ -1,39 +1,29 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"websocket/handlers"
-	"websocket/hub"
-
-	"github.com/joho/godotenv"
+    "fmt"
+    "log"
+    "net/http"
+    "websocket/config"
+    "websocket/hub"
+    "websocket/handlers"
 )
 
 func main() {
-	// Cargar .env
-	_ = godotenv.Load()
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8081"
-	}
+    cfg := config.LoadConfig()
+    h := hub.NewHub()
+    go h.Run()
 
-	h := hub.NewHub()
-	go h.Run()
+    // Ruta para conexiones WebSocket (clientes)
+    http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+        handlers.ServeWs(h, w, r)
+    })
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		handlers.ServeWs(h, w, r)
-	})
+    // Ruta para notificaciones desde la API REST
+    http.HandleFunc("/notify", handlers.NotifyEventHandler(h))
 
-	http.HandleFunc("/events", handlers.EventsHandler(h))
-
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "WebSocket server running ✅")
-	})
-
-	log.Printf("Servidor WebSocket corriendo en http://localhost:%s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal("Error:", err)
-	}
+    fmt.Printf("Servidor WebSocket corriendo en puerto %s\n", cfg.Port)
+    if err := http.ListenAndServe(":"+cfg.Port, nil); err != nil {
+        log.Fatal("Error al iniciar el servidor WebSocket:", err)
+    }
 }

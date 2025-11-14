@@ -3,6 +3,7 @@ import { InsumosService } from './insumos.service';
 import { CreateInsumoDto } from './dto/create-insumo.dto';
 import { UpdateInsumoDto } from './dto/update-insumo.dto';
 import { Insumo } from './entities/insumo.entity';
+import { notifyWebSocket } from '../utils/notify-ws';
 
 @Controller('insumos')
 export class InsumosController {
@@ -19,20 +20,27 @@ export class InsumosController {
   }
 
   @Post()
-  create(@Body() createInsumoDto: CreateInsumoDto): Promise<Insumo> {
-    return this.insumosService.create(createInsumoDto);
+  async create(@Body() createInsumoDto: CreateInsumoDto): Promise<Insumo> {
+    const nuevo= await this.insumosService.create(createInsumoDto);
+    await notifyWebSocket('supply.restocked', nuevo);
+    return nuevo;
   }
 
   @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateInsumoDto: UpdateInsumoDto,
-  ): Promise<Insumo> {
-    return this.insumosService.update(id, updateInsumoDto);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateInsumoDto) {
+    const actualizado = await this.insumosService.update(id, dto);
+    await notifyWebSocket('supply.updated', actualizado);
+
+    const STOCK_MINIMO_DEFAULT = 10; // valor arbitrario
+    if (actualizado.stock < STOCK_MINIMO_DEFAULT) {
+      await notifyWebSocket('supply.low', actualizado);
+    } 
+    return actualizado;
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
-    return this.insumosService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.insumosService.remove(id);
+    await notifyWebSocket('supply.deleted', { id });
   }
 }

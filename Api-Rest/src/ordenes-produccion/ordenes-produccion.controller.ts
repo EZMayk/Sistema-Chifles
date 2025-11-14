@@ -3,6 +3,7 @@ import { OrdenesProduccionService } from './ordenes-produccion.service';
 import { CreateOrdenProduccionDto } from './dto/create-ordenes-produccion.dto';
 import { UpdateOrdenProduccionDto } from './dto/update-ordenes-produccion.dto';
 import { OrdenProduccion } from './entities/ordenes-produccion.entity';
+import { notifyWebSocket } from '../utils/notify-ws';
 
 @Controller('ordenes-produccion')
 export class OrdenesProduccionController {
@@ -19,16 +20,32 @@ export class OrdenesProduccionController {
   }
 
   @Post()
-  create(@Body() createOrdenProduccionDto: CreateOrdenProduccionDto): Promise<OrdenProduccion> {
-    return this.ordenesProduccionService.create(createOrdenProduccionDto);
+  async create(@Body() dto: CreateOrdenProduccionDto) {
+    const nueva = await this.ordenesProduccionService.create(dto);
+    await notifyWebSocket('production.started', nueva);
+    return nueva;
   }
 
   @Put(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateOrdenProduccionDto: UpdateOrdenProduccionDto,
-  ): Promise<OrdenProduccion> {
-    return this.ordenesProduccionService.update(id, updateOrdenProduccionDto);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrdenProduccionDto) {
+    const actualizada = await this.ordenesProduccionService.update(id, dto);
+
+    switch (actualizada.estado) {
+      case 'en_progreso':
+        await notifyWebSocket('production.started', actualizada);
+        break;
+      case 'completada':
+        await notifyWebSocket('production.completed', actualizada);
+        break;
+      case 'retrasada':
+        await notifyWebSocket('production.delayed', actualizada);
+        break;
+      case 'cancelada':
+        await notifyWebSocket('production.cancelled', actualizada);
+        break;
+    }
+
+    return actualizada;
   }
 
   @Delete(':id')

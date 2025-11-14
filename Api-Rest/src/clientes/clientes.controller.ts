@@ -6,10 +6,14 @@ import {
   Param,
   Delete,
   Put,
+  ParseIntPipe,
 } from '@nestjs/common';
+
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+
+import { notifyWebSocket } from '../utils/notify-ws';
 
 @Controller('clientes')
 export class ClientesController {
@@ -21,22 +25,37 @@ export class ClientesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.clientesService.findOne(Number(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.clientesService.findOne(id);
   }
 
   @Post()
-  create(@Body() body: CreateClienteDto) {
-    return this.clientesService.create(body);
+  async create(@Body() body: CreateClienteDto) {
+    const nuevoCliente = await this.clientesService.create(body);
+
+    await notifyWebSocket("client.created", nuevoCliente);
+    
+    return nuevoCliente;
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: UpdateClienteDto) {
-    return this.clientesService.update(Number(id), body);
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateClienteDto,
+  ) {
+    const actualizado = await this.clientesService.update(id, body);
+
+    await notifyWebSocket("client.updated", actualizado);
+
+    return actualizado;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clientesService.remove(Number(id));
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.clientesService.remove(id);
+
+    await notifyWebSocket("client.deleted", { id });
+
+    return { deleted: true };
   }
 }

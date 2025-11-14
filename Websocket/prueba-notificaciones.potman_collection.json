@@ -1,0 +1,322 @@
+{
+  "info": {
+    "name": "Pruebas CRUD WebSocket + API REST (actualizado con nuevos eventos)",
+    "_postman_id": "chifles-ws-tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+
+    {
+      "name": "Crear Cliente",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/clientes",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "clientes"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Juan\",\n  \"apellido\": \"Pérez\",\n  \"dni\": \"12345678\",\n  \"telefono\": \"+593987654321\",\n  \"email\": \"juan.perez@example.com\"\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Actualizar Cliente",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/clientes/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "clientes", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"telefono\": \"+593912345678\"\n}"
+        }
+      }
+    },
+
+
+    {
+      "name": "Crear Producto",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/productos",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "productos"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Chifles Tradicional\",\n  \"descripcion\": \"Chifles salados 500g\",\n  \"precio\": 3.5,\n  \"categoria\": \"Snack\",\n  \"unidad_medida\": \"g\",\n  \"estado\": \"activo\"\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Editar Producto",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/productos/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "productos", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Chifles BBQ\",\n  \"descripcion\": \"Chifles sabor barbacoa\",\n  \"precio\": 4.0\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Crear Insumo",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/insumos",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "insumos"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Aceite Vegetal\",\n  \"unidad_medida\": \"litro\",\n  \"stock\": 50,\n  \"estado\": \"disponible\"\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Actualizar Insumo (stock bajo)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/insumos/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "insumos", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": 5\n}"
+        }
+      }
+    },
+
+
+    {
+      "name": "Crear Pedido",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/pedidos",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "pedidos"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecha\": \"2025-11-13T09:00:00Z\",\n  \"total\": 25.00,\n  \"estado\": \"pendiente\",\n  \"clienteId\": 1,\n  \"detalles\": [\n    {\n      \"productoId\": 1,\n      \"cantidad_solicitada\": 5,\n      \"precio_unitario\": 5,\n      \"subtotal\": 25\n    }\n  ]\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Completar Pedido",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/pedidos/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "pedidos", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"listo\"\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Cancelar Pedido",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/pedidos/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "pedidos", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"cancelado\"\n}"
+        }
+      }
+    },
+
+
+    {
+      "name": "Crear Factura",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/facturas",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "facturas"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecha_emision\": \"2025-11-10T11:00:00Z\",\n  \"total\": 200.50,\n  \"estado_pago\": \"pendiente\",\n  \"clienteId\": 1,\n  \"pedidoId\": 1\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Pagar Factura",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/facturas/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "facturas", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado_pago\": \"pagado\"\n}"
+        }
+      }
+    },
+
+
+
+    {
+      "name": "Crear Orden Producción (production.started)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/ordenes-produccion",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "ordenes-produccion"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fecha_inicio\": \"2025-11-13T08:00:00Z\",\n  \"fecha_fin\": \"2025-11-13T16:00:00Z\",\n  \"estado\": \"en_progreso\",\n  \"productoId\": 1,\n  \"cantidad_producir\": 200\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Completar Producción (production.completed)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/ordenes-produccion/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "ordenes-produccion", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"completada\"\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Retrasar Producción (production.delayed)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/ordenes-produccion/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "ordenes-produccion", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"retrasada\"\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Cancelar Producción (production.cancelled)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/ordenes-produccion/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "ordenes-produccion", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"estado\": \"cancelada\"\n}"
+        }
+      }
+    },
+
+
+    {
+      "name": "Crear Producto-Insumo",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/productos-insumos",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "productos-insumos"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": 1,\n  \"insumoId\": 1,\n  \"cantidad_necesaria\": 0.5\n}"
+        }
+      }
+    },
+
+    {
+      "name": "Actualizar Producto-Insumo",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": {
+          "raw": "http://localhost:3000/chifles/productos-insumos/1",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["chifles", "productos-insumos", "1"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cantidad_necesaria\": 0.8\n}"
+        }
+      }
+    }
+
+  ]
+}
