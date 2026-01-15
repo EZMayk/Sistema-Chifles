@@ -1,7 +1,7 @@
 # ========================================
 # Stage 1: Dependencies
 # ========================================
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 
 # Copiar archivos de dependencias
@@ -13,7 +13,7 @@ RUN npm ci
 # ========================================
 # Stage 2: Builder
 # ========================================
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Copiar dependencias del stage anterior
@@ -37,7 +37,7 @@ RUN npm run build
 # ========================================
 # Stage 3: Runner
 # ========================================
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
