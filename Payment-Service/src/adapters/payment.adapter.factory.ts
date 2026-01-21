@@ -2,13 +2,14 @@
 // Factory pattern to select payment provider
 
 import { MockPaymentAdapter } from "./mock-payment.adapter";
+import { StripePaymentAdapter } from "./stripe-payment.adapter";
 import { IPaymentProvider } from "../providers/payment.provider";
 
 export class PaymentAdapterFactory {
   static createAdapter(provider: string): IPaymentProvider {
     switch (provider.toLowerCase()) {
       case "stripe":
-        throw new Error("Stripe adapter not yet implemented");
+        return new StripePaymentAdapter();
       case "mock":
       default:
         return new MockPaymentAdapter();

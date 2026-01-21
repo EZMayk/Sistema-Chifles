@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, Button, Table, Badge, Spinner, Modal } from '@/components/ui';
-import { ShoppingCart, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ShoppingCart, Plus, Pencil, Trash2, CreditCard } from 'lucide-react';
 import { usePedidos, useDeletePedido } from '@/hooks/usePedidos';
 import { Pedido } from '@/types';
 import { PedidoForm } from './PedidoForm';
@@ -10,6 +11,7 @@ import { PedidoForm } from './PedidoForm';
 export default function PedidosPage() {
   const { data: pedidos, isLoading, error } = usePedidos();
   const deletePedido = useDeletePedido();
+  const router = useRouter();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -24,6 +26,11 @@ export default function PedidosPage() {
   const handleDeleteClick = (pedido: Pedido) => {
     setSelectedPedido(pedido);
     setIsDeleteOpen(true);
+  };
+
+  const handlePayClick = (pedido: Pedido) => {
+    // Redirigir a la página de pagos con los datos del pedido
+    router.push(`/pagos?pedidoId=${pedido.id}&monto=${pedido.total}`);
   };
 
   const handleConfirmDelete = async () => {
@@ -48,6 +55,8 @@ export default function PedidosPage() {
       case 'completado':
       case 'entregado':
         return <Badge variant="success">Completado</Badge>;
+      case 'pagado':
+        return <Badge variant="success">Pagado</Badge>;
       case 'pendiente':
         return <Badge variant="warning">Pendiente</Badge>;
       case 'en proceso':
@@ -55,6 +64,10 @@ export default function PedidosPage() {
         return <Badge variant="info">En Proceso</Badge>;
       case 'cancelado':
         return <Badge variant="danger">Cancelado</Badge>;
+      case 'pago_fallido':
+        return <Badge variant="danger">Pago Fallido</Badge>;
+      case 'reembolsado':
+        return <Badge variant="warning">Reembolsado</Badge>;
       default:
         return <Badge>{estado}</Badge>;
     }
@@ -102,6 +115,18 @@ export default function PedidosPage() {
       header: 'Acciones',
       accessor: (row: Pedido) => (
         <div className="flex gap-2">
+          {/* Botón de Pago - solo para pedidos pendientes */}
+          {row.estado?.toLowerCase() === 'pendiente' && (
+            <Button 
+              variant="primary" 
+              size="sm" 
+              title="Pagar pedido"
+              onClick={() => handlePayClick(row)}
+              className="bg-green-500 hover:bg-green-600"
+            >
+              <CreditCard size={16} />
+            </Button>
+          )}
           <Button 
             variant="secondary" 
             size="sm" 

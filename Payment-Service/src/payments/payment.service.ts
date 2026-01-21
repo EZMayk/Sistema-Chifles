@@ -8,6 +8,7 @@ import { PaymentStatus } from "../providers/payment.provider";
 import { PaymentEvent, PaymentEventType } from "../models/payment-event.model";
 import { WebhookDispatcherService } from "../webhooks/webhook-dispatcher.service";
 import { PaymentGateway } from "../websockets/payment.gateway";
+import { OrderSyncService } from "../services/order-sync.service";
 import { Logger } from "../utils/logger";
 
 @Injectable()
@@ -19,6 +20,7 @@ export class PaymentService {
     private paymentRepository: Repository<Payment>,
     private webhookDispatcher: WebhookDispatcherService,
     private paymentGateway: PaymentGateway,
+    private orderSyncService: OrderSyncService,
   ) {}
 
   /**
@@ -145,6 +147,13 @@ export class PaymentService {
             level: "error",
             metadata: { transactionId, error: error.message },
           });
+        });
+
+      // === INTEGRATION: Update order status in Api-Rest ===
+      await this.orderSyncService
+        .markOrderAsPaid(updatedPayment.orderId)
+        .catch((error) => {
+          this.logger.error("Failed to update order status", error);
         });
 
       // === INTEGRATION: Notify via WebSocket ===
@@ -287,6 +296,76 @@ export class PaymentService {
       return payments.map((payment) => this.mapToResponseDto(payment));
     } catch (error) {
       this.logger.error("Error fetching payments by order ID", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update payment status (used by webhooks)
+   * @param transactionId Transaction ID
+   * @param status New status
+   * @param metadata Additional metadata
+   */
+  async updatePaymentStatus(
+    transactionId: string,
+    status: string,
+    metadata?: Record<string, any>,
+  ): Promise<PaymentResponseDto> {
+    try {
+      const payment = await this.paymentRepository.findOne({
+        where: { transactionId },
+      });
+
+      if (!payment) {
+        throw new Error(`Payment not found: ${transactionId}`);
+      }
+
+      payment.status = status;
+      payment.metadata = {
+        ...payment.metadata,
+        ...metadata,
+      };
+
+      const updatedPayment = await this.paymentRepository.save(payment);
+
+      this.logger.log(`Payment status updated: ${transactionId} -> ${status}`);
+
+      // Notify via WebSocket
+      this.paymentGateway.notifyStatusUpdate({
+        type: "payment_status_update",
+        message: `Payment ${transactionId} status: ${status}`,
+        level: status === "failed" ? "error" : "info",
+        metadata: {
+          transactionId,
+          orderId: updatedPayment.orderId,
+          status,
+        },
+      });
+
+      // === INTEGRATION: Update order status based on payment status ===
+      if (status === "failed") {
+        await this.orderSyncService
+          .markOrderAsPaymentFailed(updatedPayment.orderId)
+          .catch((error) => {
+            this.logger.error("Failed to update order status to failed", error);
+          });
+      } else if (status === "refunded") {
+        await this.orderSyncService
+          .markOrderAsRefunded(updatedPayment.orderId)
+          .catch((error) => {
+            this.logger.error("Failed to update order status to refunded", error);
+          });
+      } else if (status === "cancelled") {
+        await this.orderSyncService
+          .markOrderAsCancelled(updatedPayment.orderId)
+          .catch((error) => {
+            this.logger.error("Failed to update order status to cancelled", error);
+          });
+      }
+
+      return this.mapToResponseDto(updatedPayment);
+    } catch (error) {
+      this.logger.error("Error updating payment status", error);
       throw error;
     }
   }
